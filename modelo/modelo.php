@@ -132,17 +132,35 @@ if ($completo) {
         }
         return false;
     }
-
-    static public function insertarUsuario($dataUser){
-        $pdo=Conexion::getDatabaseConnection();
-        $insertarUsuario=$pdo->query("insert into usuarios(usuario, clave, estado_id, persona_id, tipo_usuario_id) 
-        values ('".$dataUser['usuario']."','".$dataUser['clave']."','1','".$dataUser['id_persona']."','1')");
-        if ($insertarUsuario) {
-            return true;
+    static public function insertarUsuario($dataUser) {
+        try {
+            $pdo = Conexion::getDatabaseConnection();
+            
+            $sql = "INSERT INTO usuarios (usuario, clave, estado_id, persona_id, tipo_usuario_id) 
+                    VALUES (:usuario, :clave, :estado_id, :persona_id, :tipo_usuario_id)";
+            
+            $stmt = $pdo->prepare($sql);
+            
+            // Asociamos los valores de manera segura con bindValue
+            $stmt->bindValue(':usuario', $dataUser['usuario']);
+            $stmt->bindValue(':clave', $dataUser['clave']);
+            $stmt->bindValue(':estado_id', 1); // Se establece '1' directamente en bindValue
+            $stmt->bindValue(':persona_id', $dataUser['id_persona']);
+            $stmt->bindValue(':tipo_usuario_id', $dataUser['t_usuario']);
+            
+            // Ejecutamos la consulta
+            if ($stmt->execute()) {
+                return true;
+            }
+            return false;
+        } catch (PDOException $e) {
+            // Manejo de errores
+            echo "Error: " . $e->getMessage();
+            return false;
         }
-        return false;
     }
-
+    
+    
 }
 
 

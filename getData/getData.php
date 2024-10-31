@@ -74,8 +74,8 @@ class getData
     static public  function getCalificaciones( $clausulaWhere)
     {
         $pdo = Conexion::getDatabaseConnection();
-        $getCalificaciones = $pdo->query("		select distinct id_boleta, p.nombre, p.apellido_paterno, p.apellido_materno, CONCAT(per.nombre, ' ', per.apellido_paterno , ' ', per.apellido_materno) AS capturado_por ,u.usuario, nivel,nombre_plan_estudio,id_ciclo, ciclo, clave_centro_trabajo,nombre_cct, zona_escolar ,
-        folio, grupo,turno, b.fecha_registro, nombre_materia, calificacion, calificacion_primero,calificacion_segundo, calificacion_tercero, promedio_final, localidad,
+        $getCalificaciones = $pdo->query("	select distinct id_boleta, p.nombre, p.apellido_paterno, p.apellido_materno, p.localidad as localidad_dom, p.municipio as municipio_dom, p.domicilio_particular,p.curp, p.telefono, CONCAT(per.nombre, ' ', per.apellido_paterno , ' ', per.apellido_materno) AS capturado_por ,u.usuario, nivel,nombre_plan_estudio,id_ciclo, ciclo,id_centro_trabajo, clave_centro_trabajo,nombre_cct, zona_escolar ,
+        folio, grupo,turno, b.fecha_registro  as fecha_registro_boleta, nombre_materia,id_calificacion_primaria, calificacion, calificacion_primero,calificacion_segundo, calificacion_tercero, promedio_final, ct.localidad,
 		CONCAT(p_ver.nombre, ' ', p_ver.apellido_paterno , ' ', p_ver.apellido_materno) as  verificado, estado as estado_boleta
         from boletas b
         left join calificaciones_primaria cp on b.id_boleta=cp.boleta_id
@@ -102,4 +102,31 @@ class getData
             return false;
         }
     }
+
+    static public function getTiposUsuarios(){
+        $pdo = Conexion::getDatabaseConnection();
+        $tiposUsuarios = $pdo->query("SELECT id_tipo_usuario, tipo_usuario FROM tipos_usuarios");
+        $tipos = FuncionesExtras::GenerarArrayAssoc($tiposUsuarios);
+        return $tipos;
+    }
+
+    static public function getNumeroBoletasPorVerificar(){
+        $pdo = Conexion::getDatabaseConnection();
+        $numeroBoletas = $pdo->query("select count(id_boleta) as numero_boletas from boletas b join estados e on b.estado_id=e.id_estado where estado='En Captura'");
+        $datos = $numeroBoletas->fetch(PDO::FETCH_ASSOC);
+        return $datos;
+    }
+
+    static public function getUsuarios(){
+        $pdo=Conexion::getDatabaseConnection();
+        $getUsuarios= $pdo->query("select id_usuario,fecha_registro_user,  usuario, estado, nombre,apellido_paterno, apellido_materno, tipo_usuario
+from usuarios u	
+join personas p on u.persona_id=id_persona
+join tipos_usuarios tu on u.tipo_usuario_id=tu.id_tipo_usuario
+join estados e on u.estado_id=id_estado");
+
+$usuarios= FuncionesExtras::GenerarArrayAssoc($getUsuarios);
+return $usuarios;
+    }
+
 }

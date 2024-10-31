@@ -22,9 +22,14 @@ class Validaciones
     static public function validarToken($token)
     {
         $pdo = Conexion::getDatabaseConnection();
-        $validarTokenBD = $pdo->query("select id_usuario, count(id_usuario) as existencia  from usuarios where token='$token'  group by id_usuario");
+        $validarTokenBD = $pdo->query("select id_usuario, count(id_usuario) as existencia, estado 
+from usuarios u
+join estados e on u.estado_id=e.id_estado
+where token='$token'
+group by id_usuario, estado
+");
         $validarTokenBD = $validarTokenBD->fetch(PDO::FETCH_ASSOC);
-        if ($validarTokenBD) {
+        if ($validarTokenBD && $validarTokenBD['estado'] == 'activo') {
 
             $key = base64_decode('PWB+AE83m8lCfTcJYR18DQ==');
             $iv = base64_decode('TT3Fg1IFjODrg/kb4fKWEQ==');

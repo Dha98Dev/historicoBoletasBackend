@@ -2,22 +2,34 @@
 require_once('./tcpdf_include.php');
 require_once('./myPdf.php');
 include __DIR__ . '/../getData/getData.php';
-require_once __DIR__ . '/../modelo/conexion.php';
 require_once __DIR__ . '/../validaciones/validaciones.php';
 require_once __DIR__ . '/../funcionesExtras/funcionesExtras.php';
-require_once __DIR__ . '/../peticiones/peticiones.php';
+require_once __DIR__ . '/../modelo/conexion.php';
+
 // recivimos por metodo get el id  de la licencia y la descencriptamos, pero verificamos que exista y que no este vacia 
 
 if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
     $idboleta = $_GET['boleta'];
     $idUrl = FuncionesExtras::decodificacionUrl($_GET['boleta']);
-    $idLicencia = Validaciones::desencriptar($idUrl);
-    $idLicencia = (int) $idLicencia;
+    $boleta = Validaciones::desencriptar($idUrl);
+    $boleta = (int) $boleta;
 
-    if (is_numeric($idLicencia)) {
+    if (is_numeric($boleta)) {
+
+      // mandamos a llamar al metodo para obtener la informacion de la boleta es especifico
+
+       $datosBoleta = getData::getCalificaciones(" id_boleta = '$boleta' ");
+       $datosBoleta= FuncionesExtras::generarArregloCalificaciones($datosBoleta);
+       $datosBoleta= $datosBoleta[0];
+
+       $turnoMatutino=$datosBoleta['turno'] != "MATUTINO" ? '<img width="15px" src="./img/checkVacio.png" alt="">' : '<img width="15px" src="./img/checkActivo.png" alt="">';
+       $turnoVespertino=$datosBoleta['turno'] != "VESPERTINO" ? '<img width="15px" src="./img/checkVacio.png" alt="">' : '<img width="15px" src="./img/checkActivo.png" alt="">';
+
+      //  var_dump($datosBoleta);
+      $promedio=10;
 
         $fechaActual = FuncionesExtras::formatearFecha(date('Y-m-d'));
-
+        $fechaSeparada=explode('DE',$fechaActual);
 
         /**
          * 
@@ -81,10 +93,8 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
     <tr>
         <td style="font-size:10pt ;width:377px"></td>
         <td style="font-size:10pt ;width:60px">FECHA:</td>
-        <td style="font-size:10pt ;width:50px; border-bottom:1px solid #444; text-align:center">31</td>
-        <td style="font-size:10pt ;width:30px">DE</td>
-        <td style="font-size:10pt ;width:120px; border-bottom:1px solid #444; text-align:center">SEPTIEMBRE</td>
-        <td style="font-size:10pt ;width:50px; text-align:right">2024</td>
+        <td style="font-size:10pt ;width:250px; border-bottom:1px solid #444; text-align:center">'.$fechaActual.'</td>
+        
     </tr>
 </table>
 ';
@@ -195,21 +205,21 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
   
   <table border="0" style="  border-collapse: collapse; border: 1px solid #444;" cellpadding="1" cellspacing="5">
     <tr style="border-top:1px solid #444">
-      <td style="font-size:9pt; width:150px">' . strtoupper("nombre del alumno") . '</td>
-      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444;width:450px"></td>
+      <td style="font-size:9pt; width:150px; font-weight:bold">' . strtoupper("nombre del alumno") . '</td>
+      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444;width:450px; text-align:center;"> '.$datosBoleta['nombre']. " ". $datosBoleta['apellido_paterno']. " ".$datosBoleta['apellido_materno']. " ".'  </td>
     </tr>
     <tr>
-      <td style="font-size:9pt; width:200px">' . strtoupper("domicilio particular actual") . '</td>
-      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444; width:400px"></td>
+      <td style="font-size:9pt; width:200px; font-weight:bold">' . strtoupper("domicilio particular actual") . '</td>
+      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444; width:400px; text-align:center; "> '.$datosBoleta['domicilio_particular'].' </td>
 
     </tr>
     <tr>
-      <td style="font-size:9pt; width:70px" >' . strtoupper("municipio") . '</td>
-      <td style="font-size:9pt; border-bottom: 1px solid #444;width:150px"></td>
-      <td style="font-size:9pt; width:70px">' . strtoupper("localidad") . '</td>
-      <td style="font-size:9pt; border-bottom: 1px solid #444;width:150px"></td>
-      <td style="font-size:9pt; width:50px">' . strtoupper("tel. cel") . '</td>
-      <td style="font-size:9pt; border-bottom: 1px solid #444;width:111px"></td>
+      <td style="font-size:9pt; width:70px; font-weight:bold" >' . strtoupper("municipio") . '</td>
+      <td style="font-size:9pt; border-bottom: 1px solid #444;width:140px; text-align:center;"> '.$datosBoleta['municipio_dom'].' </td>
+      <td style="font-size:9pt; width:80px; font-weight:bold">' . strtoupper("localidad") . '</td>
+      <td style="font-size:9pt; border-bottom: 1px solid #444;width:140px; text-align:center">'.$datosBoleta['localidad_dom'].'</td>
+      <td style="font-size:9pt; width:60px; font-weight:bold">' . strtoupper("tel. cel") . '</td>
+      <td style="font-size:9pt; border-bottom: 1px solid #444;width:111px; text-align:center">'.$datosBoleta['telefono'].'</td>
     </tr>
         <tr>
       <td></td>
@@ -230,12 +240,12 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
 
   <table border="0" style="  border-collapse: collapse; border: 1px solid #444;" cellpadding="1" cellspacing="5">
     <tr style="border-top:1px solid #444">
-      <td style="font-size:9pt; width:150px">' . strtoupper("nombre de la escuela") . '</td>
-      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444;width:450px"></td>
+      <td style="font-size:9pt; width:150px; font-weight:bold">' . strtoupper("nombre de la escuela") . '</td>
+      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444;width:450px; text-align:center;">'.$datosBoleta['nombre_cct'].'</td>
     </tr>
     <tr>
-      <td style="font-size:9pt; width:150px">' . strtoupper("clave de la escuela") . '</td>
-      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444; width:450px"></td>
+      <td style="font-size:9pt; width:150px; font-weight:bold">' . strtoupper("clave de la escuela") . '</td>
+      <td colspan="5"  style="font-size:9pt; border-bottom: 1px solid #444; width:450px; text-align:center;">'.$datosBoleta['clave_centro_trabajo'].'</td>
 
     </tr>
     <tr>
@@ -243,12 +253,15 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
   </tr>
   
     <tr>
-      <td style="font-size:9pt; width:50px" >' . strtoupper("turno") . '</td>
-      <td style="font-size:9pt; width:100px">' . strtoupper("matutino") . ' &nbsp;&nbsp; <img width="15px" src="./img/checkVacio.png" alt=""></td>
-      <td style="font-size:9pt; width:100px">' . strtoupper("vespertino") . ' &nbsp;&nbsp; <img width="15px" src="./img/checkVacio.png" alt=""></td>
-      <td style="font-size:9pt; width:100px">' . strtoupper("grupo") . ' &nbsp;&nbsp; <img width="15px" src="./img/checkVacio.png" alt=""></td>
+      <td style="font-size:9pt; width:50px; font-weight:bold" >' . strtoupper("turno:") . '</td>
+      <td style="font-size:9pt; width:100px">' . strtoupper("matutino") . ' &nbsp;&nbsp;'.$turnoMatutino.'</td>
+      <td style="font-size:9pt; width:100px">' . strtoupper("vespertino") . ' &nbsp;&nbsp; '.$turnoVespertino.' </td>
+      <td style="font-size:9pt; width:45px">' . strtoupper("grupo") . ' </td>
+      <td style="border: 1px solid #444; width:30px; font-size:9pt; text-align:center">B</td>
+      <td style="width:20px"></td>
+
       <td style="font-size:9pt; width:100px">' . strtoupper("ciclo escolar") . '</td>
-      <td style="font-size:9pt; border-bottom: 1px solid #444;width:150px"></td>
+      <td style="font-size:9pt; border-bottom: 1px solid #444;width:150px; text-align:center">'.$datosBoleta['ciclo'].'</td>
     </tr>
       
       </table>
@@ -272,21 +285,24 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
     <td style="width:450px;">
 
 
-      <table   cellpadding="5" style="border:1px solid #444" >
+      <table   cellpadding="" style="border:1px solid #444" >
       <tr>
       <td style="font-size:4px"></td>
       </tr>
-
-        <tr>
-        <td style="font-size:9pt; text-align:center; border-top:1px solid #444; width:210px;">'.strtoupper("clave de la escuela").'</td>
+ <tr>
+        <td style="font-size:9pt; text-align:center; border-bottom:1px solid #444; width:210px;">'.$datosBoleta['clave_centro_trabajo'].'</td>
         <td style="width:20px; "></td>
-        <td style="font-size:9pt; text-align:center; border-top:1px solid #444; width:210px;">'.strtoupper("ciclo escolar").'</td>
+        <td style="font-size:9pt; text-align:center; border-bottom:1px solid #444; width:210px;">'.$datosBoleta['ciclo'].'</td>
+        </tr>
+        <tr>
+        <td style="font-size:9pt; text-align:center;  width:210px;">'.strtoupper("clave de la escuela").'</td>
+        <td style="width:20px; "></td>
+        <td style="font-size:9pt; text-align:center;  width:210px;">'.strtoupper("ciclo escolar").'</td>
         </tr>
 
-          <tr>
-      <td style="font-size:2px"></td>
-      </tr>
-
+        <tr>
+        <td colspan="3" style="font-size:9pt; text-align:center;">'.$datosBoleta['nombre_cct'].'</td>
+        </tr>
         <tr>
         <td colspan="3" style="font-size:9pt; text-align:center; border-top:1px solid #444">'.strtoupper("nombre como viene en el expediente").'</td>
         </tr>
@@ -295,23 +311,44 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
       <td style="font-size:2px"></td>
       </tr>
 
-        <tr>
-        <td style="font-size:9pt; text-align:center; border-top:1px solid #444">'.strtoupper("promedio").'</td>
+
+              <tr>
+        <td style="font-size:9pt; text-align:center; border-bottom:1px solid #444">'.$promedio.'</td>
         <td style="width:20px; "></td>
-        <td style="font-size:9pt; text-align:center; border-top:1px solid #444">'.strtoupper("folio original").'</td>
+        <td style="font-size:9pt; text-align:center; border-bottom:1px solid #444">'.$datosBoleta['folio'].'</td>
+        </tr>
+        <tr>
+        <td style="font-size:9pt; text-align:center;">'.strtoupper("promedio").'</td>
+        <td style="width:20px; "></td>
+        <td style="font-size:9pt; text-align:center;">'.strtoupper("folio original").'</td>
         </tr>
 
           <tr>
       <td style="font-size:2px"></td>
       </tr>
 
+
+       <tr>
+        <td colspan="3" style="font-size:9pt; text-align:center;"></td>
+        </tr>
+
         <tr>
         <td colspan="3" style="font-size:9pt; text-align:center; border-top:1px solid #444">'.strtoupper("nombre de la escuela").'</td>
         </tr>
 
          <tr>
-      <td style="font-size:4px"></td>
+      <td style="font-size:7px"></td>
       </tr>
+
+           <tr style=""> 
+          <td style="width:60px; text-align:center; font-size:9pt"></td>
+          <td style="width:61px; text-align:center; font-size:9pt"></td>
+          <td style="width:60px; text-align:center; font-size:9pt"></td>
+          <td style="width:100px; text-align:center; font-size:9pt"></td>
+          <td style="width:90px; text-align:center; font-size:9pt"></td>
+          <td style="width:50px; text-align:center; font-size:9pt"></td>
+        </tr>
+
 
       <tr style=""> 
           <td style="width:40px; text-align:center; border-top:1px solid #444; ">dia</td>
@@ -336,7 +373,7 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
 
 
     </td>
-    <td style="width:170px;">
+    <td style="width:210px;">
       <table  cellpadding="4" style="border: 1px solid #444">
       <tr><td style="text-align:center; font-size:12pt;"></td></tr>
         <tr><td style="text-align:center; font-size:9pt; border-top:1px solid #444; ">'.strtoupper("valido").'</td></tr>
@@ -374,7 +411,7 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
 
         //Close and output PDF document
         ob_end_clean();
-        $pdf->Output('Constancia de solicitud de licencia.pdf', 'I');
+        $pdf->Output('SOLICITUD DE DUPLICADOS Y SERVICIOS.pdf', 'I');
 
         //============================================================+
         // END OF FILE

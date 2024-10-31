@@ -131,5 +131,85 @@ class FuncionesExtras
         return $output;
     }
     
+static public function  generarArregloCalificaciones($data){
+    $calificacionesPrimaria = [];
+    $calificacionesSecundaria = [];
+    
+    $personas = [];
 
+    foreach ($data as $item) {
+        // Buscamos si ya existe una persona con el mismo id_boleta
+        $found = false;
+        foreach ($personas as &$persona) {
+            if ($persona['id_boleta'] === $item['id_boleta']) {
+                // Si la persona ya existe, agregamos las calificaciones
+                if ($item['nivel'] === 'PRIMARIA') {
+                    $persona['calificacionesPrimaria'][] = [
+                        'nombre_materia' => $item['nombre_materia'],
+                        'calificacion' => $item['calificacion']
+                    ];
+                } elseif ($item['nivel'] === 'SECUNDARIA') {
+                    $persona['calificacionesSecundaria'] = [
+                        'Primero' => $item['calificacion_primero'] ?: null,
+                        'Segundo' => $item['calificacion_segundo'] ?: null,
+                        'Tercero' => $item['calificacion_tercero'] ?: null,
+                        'calificacionFinal' => $item['promedio_final'] ?: null
+                    ];
+                }
+                $found = true;
+                break;
+            }
+        }
+        
+        // Si no se encontró a la persona, la agregamos al arreglo
+        if (!$found) {
+            $nuevaPersona = [
+                'id_boleta' => $item['id_boleta'],
+                'nombre' => $item['nombre'],
+                'apellido_paterno' => $item['apellido_paterno'],
+                'apellido_materno' => $item['apellido_materno'],
+                'capturado_por' => $item['capturado_por'],
+                'nivel' => $item['nivel'],
+                'plan_estudio' => $item['nombre_plan_estudio'],
+                'ciclo' => $item['ciclo'],
+                'clave_centro_trabajo' => $item['clave_centro_trabajo'],
+                'nombre_cct' => $item['nombre_cct'],
+                'folio' => $item['folio'],
+                'grupo' => $item['grupo'],
+                'turno' => $item['turno'],
+                'verificado'=> $item['verificado'],
+                'localidad' => $item['localidad'],
+                'localidad_dom'=>$item['localidad_dom'],
+                'municipio_dom'=>$item['municipio_dom'],
+                'domicilio_particular'=>$item['domicilio_particular'],
+                'telefono'=>$item['telefono'],
+                'zona' => $item['zona_escolar'],
+                'estado_boleta' => $item['estado_boleta'],
+                'boletaSolicitudServicio' =>FuncionesExtras::codificarUrl(Validaciones::encriptar($item['id_boleta'])),
+                'calificacionesPrimaria' => [],
+                'calificacionesSecundaria' => []
+            ];
+    
+            // Agregamos las calificaciones según el nivel
+            if ($item['nivel'] === 'PRIMARIA') {
+                $nuevaPersona['calificacionesPrimaria'][] = [
+                    'nombre_materia' => $item['nombre_materia'],
+                    'calificacion' => $item['calificacion']
+                ];
+            } elseif ($item['nivel'] === 'SECUNDARIA') {
+                $nuevaPersona['calificacionesSecundaria'] = [
+                    'Primero' => $item['calificacion_primero'] ?: null,
+                    'Segundo' => $item['calificacion_segundo'] ?: null,
+                    'Tercero' => $item['calificacion_tercero'] ?: null,
+                    'calificacionFinal' => $item['promedio_final'] ?: null
+                ];
+            }
+    
+            // Agregamos la nueva persona al arreglo
+            $personas[] = $nuevaPersona;
+        }
+    }
+    return $personas;
+    
+}
 }

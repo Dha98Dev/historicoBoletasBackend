@@ -18,14 +18,14 @@ if ($token != "" && $isValidToken['valido']) {
         $curp=$params->curp != "" ? strtoupper($params->curp) : "";
         $usuario=$params->usuario != "" ? $params->usuario : "";
         $password = $params ->password != "" ? $params->password : "" ;
-
+        $t_usuario = $params->t_usuario ?? "";
         // vericamos si la persona ya se encuentra registrada 
         $idPersona='';
         $existePersona= ValidarExistencia::existenciaPersona($curp, '');
         if ($existePersona != null) {
             $idPersona=$existePersona['id_persona'];
         }else{
-            $dataPersona=["nombre"=>$nombre,"apellidoP" => $apellidoPaterno, "apellidoM" => $apellidoMaterno, "curp" => $curp];
+            $dataPersona=[ "nombre"=>$nombre,"apellidoP" => $apellidoPaterno, "apellidoM" => $apellidoMaterno, "curp" => $curp];
             $idPersona=Modelo::insertarPersona($dataPersona);
         }
         
@@ -34,7 +34,7 @@ if ($token != "" && $isValidToken['valido']) {
         if ($validarUsuario != null) {
             FuncionesExtras::enviarRespuesta(true,true,"El usuario ya se encuentra registrado", []);  
         }else{
-            $insertarUsuario=["usuario"=>$usuario, "clave"=>Validaciones::encriptar($password), "id_persona"=>$idPersona];
+            $insertarUsuario=["t_usuario" => $t_usuario,"usuario"=>$usuario, "clave"=>Validaciones::encriptar($password), "id_persona"=>$idPersona];
             $insertarUsuario=Modelo::insertarUsuario($insertarUsuario);
             if ($insertarUsuario) {
                 FuncionesExtras::enviarRespuesta(false,true,"Usuario Agregado Correctamente","");

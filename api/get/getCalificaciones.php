@@ -66,7 +66,8 @@ if ($token != "" && $isValidToken['valido']) {
                     if ($item['nivel'] === 'PRIMARIA') {
                         $persona['calificacionesPrimaria'][] = [
                             'nombre_materia' => $item['nombre_materia'],
-                            'calificacion' => $item['calificacion']
+                            'calificacion' => $item['calificacion'],
+                            'id_calificacion_primaria' => $item['id_calificacion_primaria']
                         ];
                     } elseif ($item['nivel'] === 'SECUNDARIA') {
                         $persona['calificacionesSecundaria'] = [
@@ -88,6 +89,7 @@ if ($token != "" && $isValidToken['valido']) {
                     'nombre' => $item['nombre'],
                     'apellido_paterno' => $item['apellido_paterno'],
                     'apellido_materno' => $item['apellido_materno'],
+                    'curp'=>$item['curp'],
                     'capturado_por' => $item['capturado_por'],
                     'nivel' => $item['nivel'],
                     'plan_estudio' => $item['nombre_plan_estudio'],
@@ -97,10 +99,17 @@ if ($token != "" && $isValidToken['valido']) {
                     'folio' => $item['folio'],
                     'grupo' => $item['grupo'],
                     'turno' => $item['turno'],
+                    'id_ct'=>$item['id_centro_trabajo'],
+                    'fecha_registro_boleta' => $item['fecha_registro_boleta'],
                     'verificado'=> $item['verificado'],
                     'localidad' => $item['localidad'],
+                    'localidad_dom'=>$item['localidad_dom'],
+                    'municipio_dom'=>$item['municipio_dom'],
+                    'domicilio_particular'=>$item['domicilio_particular'],
+                    'telefono'=>$item['telefono'],
                     'zona' => $item['zona_escolar'],
                     'estado_boleta' => $item['estado_boleta'],
+                    'boletaSolicitudServicio' =>FuncionesExtras::codificarUrl(Validaciones::encriptar($item['id_boleta'])),
                     'calificacionesPrimaria' => [],
                     'calificacionesSecundaria' => []
                 ];
@@ -109,7 +118,8 @@ if ($token != "" && $isValidToken['valido']) {
                 if ($item['nivel'] === 'PRIMARIA') {
                     $nuevaPersona['calificacionesPrimaria'][] = [
                         'nombre_materia' => $item['nombre_materia'],
-                        'calificacion' => $item['calificacion']
+                        'calificacion' => $item['calificacion'],
+                        'id_calificacion_primaria' => $item['id_calificacion_primaria']
                     ];
                 } elseif ($item['nivel'] === 'SECUNDARIA') {
                     $nuevaPersona['calificacionesSecundaria'] = [
