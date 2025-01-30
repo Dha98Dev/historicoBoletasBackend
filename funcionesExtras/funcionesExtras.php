@@ -117,19 +117,7 @@ class FuncionesExtras
         }
     }
 
- static public  function limpiarCadena($input)
-    {
 
-        $search = array(
-            '@<script[^>]*?>.*?</script>@si',   // Elimina javascript
-            '@<[\/\!]*?[^<>]*?>@si',            // Elimina las etiquetas HTML
-            '@<style[^>]*?>.*?</style>@siU',    // Elimina las etiquetas de estilo
-            '@<![\s\S]*?--[ \t\n\r]*>@'         // Elimina los comentarios multi-línea
-        );
-
-        $output = preg_replace($search, '', $input);
-        return $output;
-    }
     
 static public function  generarArregloCalificaciones($data){
     $calificacionesPrimaria = [];
@@ -211,5 +199,14 @@ static public function  generarArregloCalificaciones($data){
     }
     return $personas;
     
+}
+
+static public function encriptarIdentificadores($arregloIdentificadores, $arreglo){
+    for ($i=0; $i <count($arreglo) ; $i++) { 
+        for ($j=0; $j <count($arregloIdentificadores) ; $j++) { 
+            $arreglo[$i][$arregloIdentificadores[$j]] = Validaciones::encriptar( $arreglo[$i][$arregloIdentificadores[$j]]);
+        }
+    }
+    return $arreglo;
 }
 }

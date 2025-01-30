@@ -1,4 +1,7 @@
 <?php
+
+use function PHPSTORM_META\type;
+
 require_once('./tcpdf_include.php');
 require_once('./myPdf.php');
 include __DIR__ . '/../getData/getData.php';
@@ -8,12 +11,17 @@ require_once __DIR__ . '/../modelo/conexion.php';
 
 // recivimos por metodo get el id  de la licencia y la descencriptamos, pero verificamos que exista y que no este vacia 
 
-if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
+// tpp es tipo de presentacion del promedio
+if (isset($_GET['boleta'])  && !empty($_GET['boleta']) && isset($_GET['tpp'])) {
     $idboleta = $_GET['boleta'];
+    $tpp = $_GET['tpp'];
+    $tpp = (int) $tpp;
+
     $idUrl = FuncionesExtras::decodificacionUrl($_GET['boleta']);
     $boleta = Validaciones::desencriptar($idUrl);
     $boleta = (int) $boleta;
 
+    // echo $boleta;
     if (is_numeric($boleta)) {
 
       // mandamos a llamar al metodo para obtener la informacion de la boleta es especifico
@@ -25,8 +33,30 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
        $turnoMatutino=$datosBoleta['turno'] != "MATUTINO" ? '<img width="15px" src="./img/checkVacio.png" alt="">' : '<img width="15px" src="./img/checkActivo.png" alt="">';
        $turnoVespertino=$datosBoleta['turno'] != "VESPERTINO" ? '<img width="15px" src="./img/checkVacio.png" alt="">' : '<img width="15px" src="./img/checkActivo.png" alt="">';
 
-      //  var_dump($datosBoleta);
-      $promedio=10;
+      //  var_dump($datosBoleta['calificacionesPrimaria']);
+       $calificacionesPrimaria= $datosBoleta['calificacionesPrimaria'];
+       $calificacionesSecundaria= $datosBoleta['calificacionesSecundaria'];
+      //  contamos el numero de materias que se tomaran en cuenta para la calificacion, en caso de que sea indigena omitir la materia lengua que habla
+      $contador=0;
+      $sumatoria=0;
+
+      for ($i=0; $i <count($calificacionesPrimaria) ; $i++) { 
+        if($calificacionesPrimaria[$i]['nombre_materia'] != 'LENGUA QUE HABLA')
+        $contador +=1;
+        $sumatoria+=$calificacionesPrimaria[$i]['calificacion'];
+      }
+      $promedio = $contador > 0 ? $sumatoria / $contador : $calificacionesSecundaria['calificacionFinal'];
+
+      if ($tpp == 1 && gettype($tpp) == 'integer') {
+          // Redondear hacia arriba o hacia abajo según el decimal
+          $promedio = ($promedio - floor($promedio) >= 0.5) ? ceil($promedio) : floor($promedio);
+      } else {
+          // Redondear a un punto decimal
+          $promedio = round($promedio, 1);
+      }
+      
+
+      
 
         $fechaActual = FuncionesExtras::formatearFecha(date('Y-m-d'));
         $fechaSeparada=explode('DE',$fechaActual);
@@ -301,7 +331,7 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
         </tr>
 
         <tr>
-        <td colspan="3" style="font-size:9pt; text-align:center;">'.$datosBoleta['nombre_cct'].'</td>
+        <td colspan="3" style="font-size:9pt; text-align:center;">'.$datosBoleta['nombre']. " ". $datosBoleta['apellido_paterno']. " ".$datosBoleta['apellido_materno']. " ".' </td>
         </tr>
         <tr>
         <td colspan="3" style="font-size:9pt; text-align:center; border-top:1px solid #444">'.strtoupper("nombre como viene en el expediente").'</td>
@@ -329,7 +359,7 @@ if (isset($_GET['boleta'])  && !empty($_GET['boleta'])) {
 
 
        <tr>
-        <td colspan="3" style="font-size:9pt; text-align:center;"></td>
+        <td colspan="3" style="font-size:9pt; text-align:center;">'.$datosBoleta['nombre_cct'].'</td>
         </tr>
 
         <tr>

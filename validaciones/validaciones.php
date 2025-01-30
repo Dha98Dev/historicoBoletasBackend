@@ -115,41 +115,51 @@ group by id_usuario, estado
         }
     }
 
-    // static public function ValidarRangoFechas($fechaInicio, $fechaFin, $limite)
-
-    static public function validarRangoFechas($fechaInicio, $fechaFin, $limite)
+    static public  function limpiarCadena($datos)
     {
-        $inicio = new DateTime($fechaInicio);
-        $fin = new DateTime($fechaFin);
-        $fechaFinMaxima = null;
-
-        switch ($limite) {
-            case '180':
-                $fechaFinMaxima = clone $inicio;
-                $fechaFinMaxima->modify('+180 days');
-                break;
-            case '90':
-                $fechaFinMaxima = clone $inicio;
-                $fechaFinMaxima->modify('+90 days');
-                break;
-            case '365':
-                $fechaFinMaxima = clone $inicio;
-                $fechaFinMaxima->modify('+365 days');
-                break;
-            case '0000-12-31':
-                $fechaFinMaxima = new DateTime($inicio->format('Y') . '-12-31');
-                break;
-            case '':
-                $fechaFinMaxima = new DateTime(($inicio->format('Y') + 2) . '-12-31');
-                break;
-            case null:
-                $fechaFinMaxima = new DateTime(($inicio->format('Y') + 2) . '-12-31');
-                break;
-            default:
-                throw new Exception('Límite inválido');
+    // Si es un arreglo, aplicar la limpieza a cada elemento
+    if (is_array($datos)) {
+        foreach ($datos as $clave => $valor) {
+            $datos[$clave] = Validaciones::limpiarCadena($valor);
         }
+        return $datos;
+    } else {
+        // Elimina espacios en los extremos
+        $datos = trim($datos);
+        // Elimina las etiquetas HTML y PHP
+        $datos = strip_tags($datos);
+        // Convierte caracteres especiales en entidades HTML
+        $datos = htmlspecialchars($datos, ENT_QUOTES, 'UTF-8');
+        // Escapa caracteres especiales para SQL
+        $datos = addslashes($datos);
+        return $datos;
+    }
+    }
 
-        // Verificar si la fecha de fin está dentro del límite permitido
-        return $fin <= $fechaFinMaxima && $fin >= $inicio;
+    static public function validarLongitud($longitud, $aValidar, $opcionValidacion)
+    {
+        // Validación individual
+        if ($longitud !== "" && $opcionValidacion === "1") {
+            return strlen($aValidar) <= $longitud;
+        }
+        
+        // Validación de un conjunto de elementos
+        if ($longitud === "" && $opcionValidacion === "2") {
+            foreach ($aValidar as $item) {
+                if (!isset($item['aValidar'], $item['longitud'])) {
+                    // Si el formato del array no es correcto
+                    return false;
+                }
+    
+                $esValido = Validaciones::validarLongitud($item['longitud'], $item['aValidar'], '1');
+                if (!$esValido) {
+                    return false; // Detenemos si algún elemento no es válido
+                }
+            }
+            return true; // Todos los elementos son válidos
+        }
+    
+        // Si las condiciones no coinciden
+        return false;
     }
 }

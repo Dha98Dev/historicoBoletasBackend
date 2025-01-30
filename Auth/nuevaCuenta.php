@@ -12,17 +12,17 @@ $isValidToken = Validaciones::validarToken($token);
 if ($token != "" && $isValidToken['valido']) {
     try 
     {
-        $nombre=$params->nombre != "" ? strtoupper($params->nombre) : "";
-        $apellidoPaterno=$params->apellidoP != "" ? strtoupper($params->apellidoP) : "";
-        $apellidoMaterno=$params->apellidoM != "" ? strtoupper($params->apellidoM) : "";
-        $curp=$params->curp != "" ? strtoupper($params->curp) : "";
+        $nombre=$params->nombre != "" ? Validaciones::limpiarCadena(strtoupper($params->nombre)) : "";
+        $apellidoPaterno=$params->apellidoP != "" ? Validaciones::limpiarCadena(strtoupper($params->apellidoP)) : "";
+        $apellidoMaterno=$params->apellidoM != "" ? Validaciones::limpiarCadena(strtoupper($params->apellidoM)) : "";
+        $curp=$params->curp != "" ? Validaciones::limpiarCadena(strtoupper($params->curp)) : "";
         $usuario=$params->usuario != "" ? $params->usuario : "";
-        $password = $params ->password != "" ? $params->password : "" ;
-        $t_usuario = $params->t_usuario ?? "";
+        $password = $params ->password != "" ? base64_decode($params->password) : "" ;
+        $t_usuario = Validaciones::limpiarCadena($params->t_usuario) ?? "";
         // vericamos si la persona ya se encuentra registrada 
         $idPersona='';
         $existePersona= ValidarExistencia::existenciaPersona($curp, '');
-        if ($existePersona != null) {
+        if ($existePersona != null) { 
             $idPersona=$existePersona['id_persona'];
         }else{
             $dataPersona=[ "nombre"=>$nombre,"apellidoP" => $apellidoPaterno, "apellidoM" => $apellidoMaterno, "curp" => $curp];

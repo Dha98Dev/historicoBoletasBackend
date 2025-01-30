@@ -7,32 +7,22 @@ require_once __DIR__."/../../getData/validarExistencia.php";
 require_once __DIR__."/../../updates/actualizaciones.php";
 
 $params=FuncionesExtras::getJson();
-$usuario=$params-> idBoleta ?? "";
- $estado=$params->estado ?? ""; 
+$usuario=Validaciones::limpiarCadena(Validaciones::desencriptar($params->usuario)) ?? "";
+ $estado=Validaciones::limpiarCadena($params->estado) ?? ""; 
 $token=$params->token;
 $isValidToken = Validaciones::validarToken($token);
 if ($token != "" && $isValidToken['valido']) {
     try 
     {
-        // verificamos que no este  en estado de revisado para poder hacer la actualizacion
-        $data=getData::getCalificaciones("id_boleta = '$idBoleta'");
-        if ($data && $data[0]['estado_boleta'] != 'Revisado') {
-
-            $updateEstado=Actualizaciones::cambiarEstadoBoleta($idBoleta, $isValidToken['datos']['id_usuario']);
-            if ($updateEstado) {
-        $data=getData::getCalificaciones("id_boleta = '$idBoleta'");
-        $response=["estado_boleta" => $data[0]['estado_boleta'], "verificado" => $data[0]['verificado']];
+        $mensajeEstado=$estado == "inactivo"  ? 'inhabilitado' : 'habilitado';
+        $updateEstadoUsuario=Actualizaciones::updateEstadoUsuario($estado, $usuario);
+        if ($updateEstadoUsuario) {
+            FuncionesExtras::enviarRespuesta(false, true, 'Se ha '.$mensajeEstado.' correctamente el usuario','');
+        }
+        else{
+            FuncionesExtras::enviarRespuesta(true, true, 'No se ha '.$mensajeEstado.' el usuario, intentelo mas tarde','');
+        }
         
-
-               FuncionesExtras::enviarRespuesta(false,true,"Cambio de estado exitoso", $response);
-            } 
-            FuncionesExtras::enviarRespuesta(true, true, "ocurrio un error al cambiar el estado de la boleta", []);
-           } 
-        //    en  caso de que ya este revisado retornamos el mensaje de error
-           else{
-            FuncionesExtras::enviarRespuesta(true, true, "Esta Boleta ya esta en estado de revisada", []);
-           }
-
         }
 catch (Exception $e) {
 FuncionesExtras::enviarRespuesta(true,true,$e->getMessage(), "");

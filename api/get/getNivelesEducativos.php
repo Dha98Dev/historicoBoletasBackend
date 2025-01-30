@@ -12,6 +12,7 @@ if ($token != "" && $isValidToken['valido']) {
     {
     
            $nivelesEducativos=getData::getNivelesEducativos();
+           $nivelesEducativos=FuncionesExtras::encriptarIdentificadores(['valor'],$nivelesEducativos);
     
             FuncionesExtras::enviarRespuesta(false,true,"Listado de niveles educativos", $nivelesEducativos);
 

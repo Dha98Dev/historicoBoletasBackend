@@ -5,7 +5,7 @@ require_once __DIR__."/../../modelo/modelo.php";
 include __DIR__."/../../funcionesExtras/cors.php";
 
 $params=FuncionesExtras::getJson();
-$numeroFiltro=$params->numeroFiltro ?? "";
+$numeroFiltro=Validaciones::limpiarCadena($params->numeroFiltro) ?? "";
 
 
 $clausulaWhere="";

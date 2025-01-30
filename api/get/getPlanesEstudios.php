@@ -11,9 +11,10 @@ if ($token != "" && $isValidToken['valido']) {
     {
     
            $planesEstudio=getData::getPlanesEstudios();
+           $planesEstudio=FuncionesExtras::encriptarIdentificadores(['valor'], $planesEstudio );
 
     
-            FuncionesExtras::enviarRespuesta(false,true,"Listado de planes de estudio ", $planesEstudio);
+            FuncionesExtras::enviarRespuesta(false,true,"Listado de planes de    estudio ", $planesEstudio);
 
     } 
 catch (Exception $e) {

@@ -6,10 +6,14 @@ include __DIR__."/../../funcionesExtras/cors.php";
 require_once __DIR__."/../../getData/validarExistencia.php";
 
 $params=FuncionesExtras::getJson();
-$materia=$params->materia != "" ? $params->materia: "" ;
+$materia=$params->materia != "" ? Validaciones::limpiarCadena(strtoupper($params->materia)): "" ;
 $respuesta="";
 $token=$params->token;
 $isValidToken = Validaciones::validarToken($token);
+
+$aValidar= Validaciones::validarLongitud(35, $materia, '1');
+if (!$aValidar) {FuncionesExtras::enviarRespuesta(true,true,"Algunos de los Datos que envio son demasiado largos, Verifiquelos por favor", ""); die;}
+
 if ($token != "" && $isValidToken['valido']) {
     try 
     {
@@ -21,9 +25,9 @@ if ($token != "" && $isValidToken['valido']) {
             $existeMateria=ValidarExistencia::existenciaMateria($materia);
             if (!$existeMateria) {
                 $nuevaMateria=Modelo::insertarMateria($materia);
-                if ($nuevaMateria) {
-                    $materiasActualizadas= getData::getMaterias();
-                    FuncionesExtras::enviarRespuesta(false,true,"Materia Agregada correctamente", $materiasActualizadas);    
+                if ($nuevaMateria !=  false) {
+                    $materiaAgregada=["valor"=> $nuevaMateria.'-'.$materia,"nombre"=>$materia];
+                    FuncionesExtras::enviarRespuesta(false,true,"Materia Agregada correctamente", $materiaAgregada);    
                 }
             } 
             else{

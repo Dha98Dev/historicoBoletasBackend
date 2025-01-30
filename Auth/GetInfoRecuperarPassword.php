@@ -2,7 +2,7 @@
 require_once __DIR__.'/../modelo/conexion.php';
 class  GetInfoRecuperarPassword{
     static public function getUsuario($usuario){
-    $pdo=getDatabaseConnection();
+    $pdo=Conexion::getDatabaseConnection();
     $existe=$pdo->query("select * from  usuarios where usuario='$usuario'");
     $datosUsuario=$existe->fetch(PDO::FETCH_ASSOC);
     if($datosUsuario){
@@ -13,7 +13,7 @@ class  GetInfoRecuperarPassword{
     }
 
     static public function getCodigoGuardado($usuario){
-        $pdo=getDatabaseConnection();
+        $pdo=Conexion::getDatabaseConnection();
         $codigoGuardado=$pdo->query("select  codigo_verificacion from usuarios where usuario='$usuario'");
         $codigo=$codigoGuardado->fetch(PDO::FETCH_ASSOC);
         return $codigo;

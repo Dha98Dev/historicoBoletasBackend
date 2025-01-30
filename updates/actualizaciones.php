@@ -110,6 +110,9 @@ static public function UpdateCalificacionesSecundaria($cal, $idBoleta) {
 // Función para actualizar calificaciones de primaria
 static public function UpdateCalificacionesPrimaria($cal) {
     $pdo = Conexion::getDatabaseConnection();
+    foreach ($cal as $c) {
+        $c->id_calificacion_primaria=Validaciones::desencriptar($c->id_calificacion_primaria);
+    }
     $updated=true;
     foreach ($cal as $c) {
         if (count($cal) > 0) {
@@ -155,19 +158,33 @@ return false;
 }
 
 static public function updateDatosBoleta($dataBoleta){
-    $pdo=Conexion::getDatabaseConnection();
-    $updateBoleta=$pdo->prepare("update boletas set folio=':folio',ciclo_escolar_id=(select id_ciclo from ciclos_escolares where ciclo=':ciclo') , turno_id=(select id_turno from turnos where turno=':turno'), grupo=':grupo' where id_boleta=':id_boleta'");
-
-    $updateBoleta->bindParam('folio',$dataBoleta['folio'], PDO::PARAM_STR);
-    $updateBoleta->bindParam(':ciclo',$dataBoleta['ciclo']);
-    $updateBoleta->bindParam(':turno',$dataBoleta['turno']);
-    $updateBoleta->bindParam(':grupo',$dataBoleta['grupo']);
-    $updateBoleta->bindParam(':id_boleta',$dataBoleta['idBoleta']);
+    $pdo = Conexion::getDatabaseConnection();
+    $updateBoleta = $pdo->prepare("
+        UPDATE boletas 
+        SET 
+            folio = :folio,
+            ciclo_escolar_id = (SELECT id_ciclo FROM ciclos_escolares WHERE ciclo = :ciclo),
+            turno_id = (SELECT id_turno FROM turnos WHERE turno = :turno),
+            grupo = :grupo 
+        WHERE id_boleta = :id_boleta
+    ");
+    
+    $updateBoleta->bindParam(':folio', $dataBoleta['folio'], PDO::PARAM_STR);
+    $updateBoleta->bindParam(':ciclo', $dataBoleta['ciclo']);
+    $updateBoleta->bindParam(':turno', $dataBoleta['turno']);
+    $updateBoleta->bindParam(':grupo', $dataBoleta['grupo']);
+    $updateBoleta->bindParam(':id_boleta', $dataBoleta['idBoleta']);
+    
     $updateBoleta->execute();
-    if($updateBoleta){
+    
+    if ($updateBoleta) {
         return true;
     }
     return false;
+    
+
+        // $updateBoleta=$pdo->prepare("update boletas set folio='".$dataBoleta['folio']."',ciclo_escolar_id=(select id_ciclo from ciclos_escolares where ciclo='".$dataBoleta['ciclo']."') , turno_id=(select id_turno from turnos where turno='".$dataBoleta['turno']."'), grupo='".$dataBoleta['grupo']."' where id_boleta='".$dataBoleta['idBoleta']."'");
+        // return $updateBoleta;
 
 }
 
@@ -175,6 +192,15 @@ static public function updateEstadoUsuario($estado, $usuario){
     $pdo=Conexion::getDatabaseConnection();
     $updateEstadoUsuario= $pdo ->query("update usuarios set estado_id=(select id_estado from estados where estado='$estado') where id_usuario='$usuario'");
     if($updateEstadoUsuario){
+        return true;
+    }
+    return false;
+}
+
+static public function updatePassword($idUsuario, $newPassword){
+    $pdo=Conexion::getDatabaseConnection();
+    $updatePassword=$pdo->query("update usuarios set clave='$newPassword' where id_usuario='$idUsuario'");
+    if($updatePassword){
         return true;
     }
     return false;

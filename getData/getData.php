@@ -3,12 +3,18 @@
 // require_once __DIR__ . '/../getData/getData.php';
 class getData
 {
-    static public function getMateriasPlan($idPlanEstudio)
+    static public function getMateriasPlan($idPlanEstudio,$nombrePlan)
     {
+        if($nombrePlan != "") {
+            $clausulaWhere= "nombre_plan_estudio = '$nombrePlan'";
+        }
+        else{
+            $clausulaWhere="id_plan_estudio = '$idPlanEstudio'";
+        }
         $pdo = Conexion::getDatabaseConnection();
-        $getMaterias = $pdo->query(" select id_materia as valor, nombre_materia as nombre, id_plan_estudio, nombre_plan_estudio from catalogo_materias_plan_estudio cmpe
+        $getMaterias = $pdo->query(" select id_catalogo_materia_plan as valor, nombre_materia as nombre, id_plan_estudio, nombre_plan_estudio from catalogo_materias_plan_estudio cmpe
         join materias m on cmpe.materia_id=m.id_materia 
-        join planes_estudios pe on cmpe.plan_estudio_id=pe.id_plan_estudio where id_plan_estudio='$idPlanEstudio'  order by nombre_materia asc");
+        join planes_estudios pe on cmpe.plan_estudio_id=pe.id_plan_estudio where $clausulaWhere  order by id_catalogo_materia_plan");
         $materiasPlan = FuncionesExtras::GenerarArrayAssoc($getMaterias);
         return $materiasPlan;
     }
@@ -24,12 +30,12 @@ class getData
     {
         $pdo = Conexion::getDatabaseConnection();
         $planesEstudios = $pdo->query("SELECT count(id_catalogo_materia_plan) as numero_materias,
-        CONCAT(SUBSTRING(periodo_inicio::text, 1, 4), '-',  SUBSTRING(periodo_fin::text, 1, 4)) as periodo_aplicacion, id_plan_estudio AS valor,
-        CONCAT(nombre_plan_estudio, ' ', SUBSTRING(periodo_inicio::text, 1, 4)) AS nombre 
+        CONCAT(SUBSTRING(periodo_inicio::text, 1, 4), '-',  SUBSTRING(periodo_fin::text, 1, 4)) as periodo_aplicacion, id_plan_estudio AS valor, 
+        CONCAT(nombre_plan_estudio, ' ', SUBSTRING(periodo_inicio::text, 1, 4)) AS nombre, educacion_indigena 
         FROM planes_estudios pe
         left join catalogo_materias_plan_estudio cmpe on pe.id_plan_estudio=cmpe.plan_estudio_id
         group by id_plan_estudio
-        ORDER BY nombre_plan_estudio ASC;");
+        ORDER BY id_plan_estudio desc;");
         $planes = FuncionesExtras::GenerarArrayAssoc($planesEstudios);
         return $planes;
     }
@@ -59,7 +65,7 @@ class getData
     {
         $pdo = Conexion::getDatabaseConnection();
         $infoCct = $pdo->query("
-        SELECT id_centro_trabajo,id_director_centro_trabajo ,ct.clave_centro_trabajo,ct.nombre_cct,ct.zona_escolar,dct.ciclo_escolar_id, ciclo, 
+        SELECT id_centro_trabajo,id_director_centro_trabajo ,ct.clave_centro_trabajo,ct.nombre_cct,ct.zona_escolar,dct.ciclo_escolar_id, ciclo, ct.localidad,
         id_persona, p.nombre ,p.apellido_paterno , p.apellido_materno, p.curp, nivel, id_nivel
         FROM centros_trabajos ct
         LEFT JOIN  directores_centro_trabajo dct ON ct.id_centro_trabajo = dct.centro_trabajo_id
@@ -72,11 +78,13 @@ class getData
     }
 
     static public  function getCalificaciones( $clausulaWhere)
+    
     {
         $pdo = Conexion::getDatabaseConnection();
         $getCalificaciones = $pdo->query("	select distinct id_boleta, p.nombre, p.apellido_paterno, p.apellido_materno, p.localidad as localidad_dom, p.municipio as municipio_dom, p.domicilio_particular,p.curp, p.telefono, CONCAT(per.nombre, ' ', per.apellido_paterno , ' ', per.apellido_materno) AS capturado_por ,u.usuario, nivel,nombre_plan_estudio,id_ciclo, ciclo,id_centro_trabajo, clave_centro_trabajo,nombre_cct, zona_escolar ,
-        folio, grupo,turno, b.fecha_registro  as fecha_registro_boleta, nombre_materia,id_calificacion_primaria, calificacion, calificacion_primero,calificacion_segundo, calificacion_tercero, promedio_final, ct.localidad,
-		CONCAT(p_ver.nombre, ' ', p_ver.apellido_paterno , ' ', p_ver.apellido_materno) as  verificado, estado as estado_boleta
+        folio, grupo,turno, b.fecha_registro  as fecha_registro_boleta, nombre_materia,id_calificacion_primaria,id_calificacion_secundaria, calificacion, calificacion_primero,calificacion_segundo, calificacion_tercero, promedio_final, ct.localidad,
+		CONCAT(p_ver.nombre, ' ', p_ver.apellido_paterno , ' ', p_ver.apellido_materno) as  verificado,
+		CONCAT(p_dir.nombre, ' ', p_dir.apellido_paterno , ' ', p_dir.apellido_materno) as  director_ct, estado as estado_boleta, cmpe.id_catalogo_materia_plan
         from boletas b
         left join calificaciones_primaria cp on b.id_boleta=cp.boleta_id
         left join calificaciones_secundaria cs on  b.id_boleta=cs.boleta_id
@@ -86,13 +94,18 @@ class getData
         inner join ciclos_escolares ce on b.ciclo_escolar_id=ce.id_ciclo
         inner join turnos t on b.turno_id=t.id_turno
         inner join centros_trabajos ct on b.centro_trabajo_id=ct.id_centro_trabajo
-        left join materias m on cp.materia_id=m.id_materia
+		left join catalogo_materias_plan_estudio cmpe on  cp.catalogo_materia_plan_id=cmpe.id_catalogo_materia_plan
+        left join materias m on cmpe.materia_id=m.id_materia
 		left join usuarios u on  b.capturado_por= u.id_usuario
 		left join personas per on u.persona_id = per.id_persona
 		left join usuarios uver on b.verificada_por=uver.id_usuario
 		left join personas p_ver on uver.persona_id=p_ver.id_persona
+		left join directores_centro_trabajo dct on b.autorizo_director = dct.id_director_centro_trabajo
+		left join personas p_dir on dct.persona_id = p_dir.id_persona
         inner join  estados e on b.estado_id=id_estado
-		where $clausulaWhere");
+		where  $clausulaWhere
+        order by cmpe.id_catalogo_materia_plan
+        ");
 
 
         $calificaciones = FuncionesExtras::GenerarArrayAssoc($getCalificaciones);
@@ -127,6 +140,21 @@ join estados e on u.estado_id=id_estado");
 
 $usuarios= FuncionesExtras::GenerarArrayAssoc($getUsuarios);
 return $usuarios;
+    }
+
+    static public function getIdMateria($nombreMateria, $planEstudio){
+        $pdo=Conexion::getDatabaseConnection();
+        $getIdMateria= $pdo->query("select distinct id_catalogo_materia_plan, nombre_materia  from catalogo_materias_plan_estudio cmpe
+join materias m on cmpe.materia_id=m.id_materia
+where  nombre_materia= '$nombreMateria' and plan_estudio_id= '$planEstudio'
+");
+
+$datos=$getIdMateria->fetch(PDO::FETCH_ASSOC);
+        if ($datos != false) {
+            return $datos;
+        }
+        return false;
+
     }
 
 }

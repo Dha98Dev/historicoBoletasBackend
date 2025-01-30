@@ -5,7 +5,7 @@ require_once __DIR__."/../modelo/modelo.php";
 
 $pdo=Conexion::getDatabaseConnection();
 $params=FuncionesExtras::getJson();
-$usuario=$params->usuario;
+$usuario=Validaciones::limpiarCadena($params->usuario);
 $password=$params->password;
 $password=Validaciones::encriptar($password);
 try {

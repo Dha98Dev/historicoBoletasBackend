@@ -21,8 +21,8 @@ class MYPDF extends TCPDF {
     public function Footer() {
         // Position at 15 mm from bottom
         $this->SetY(-15);
-        $image_file = './img/fondo-pie.png';
-        $this->Image($image_file, 0,  $this->GetY()-10, 213, '', 'PNG', '', 'T', false, 300, '', false, false, 0, false, false, false);
+        // $image_file = './img/fondo-pie.png';
+        // $this->Image($image_file, 0,  $this->GetY()-10, 213, '', 'PNG', '', 'T', false, 300, '', false, false, 0, false, false, false);
         // Set font
         $this->SetFont('helvetica', 'I', 8);
         // Page number

@@ -14,8 +14,9 @@ if ($token != "" && $isValidToken['valido']) {
     {
         // verificamos que todos los parametros vengan llenos en este caso es el de la materia
 
-           $ciclosEscolares=getData::getTurnos();
-           FuncionesExtras::enviarRespuesta(false,true,"Listado de ciclos escolares", $ciclosEscolares);
+           $turnos=getData::getTurnos();
+           $turnos=FuncionesExtras::encriptarIdentificadores(['valor'], $turnos);
+           FuncionesExtras::enviarRespuesta(false,true,"Listado de ciclos escolares", $turnos);
 
     } 
 catch (Exception $e) {

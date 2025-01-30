@@ -64,6 +64,62 @@ class ValidarExistencia{
         }
     }
 
+// metodo para obtener la informacion de una boleta en especifico para saber si ya existe 
+    static public function existenciaBoleta($folio){
+        $pdo=Conexion::getDatabaseConnection();
+        $existeBoleta=$pdo->prepare("select * from boletas where folio= :folio");
+        $existeBoleta->bindValue(':folio', $folio);
+        $existeBoleta->execute();
+        if($existeBoleta->fetch(PDO::FETCH_ASSOC)){
+            return true;
+        }
+        return false;
+
+    }
+// metodo creado inicialmente para poder obtener el id del nivel
+    static public function existenciaNivel($nivel){
+        $pdo=Conexion::getDatabaseConnection();
+        $existeNivel= $pdo->prepare("select * from  niveles where nivel= :nivel");
+        $existeNivel->bindValue(':nivel', $nivel);
+        $existeNivel->execute();
+        if($existeNivel->rowCount() > 0){
+            return $existeNivel->fetch(PDO::FETCH_ASSOC);
+        }
+        return false;
+    }
+
+    static public function existenciaCiclo($ciclo){
+        $pdo=Conexion::getDatabaseConnection();
+        $existenciaCiclo=$pdo->prepare("select * from ciclos_escolares where ciclo=:ciclo");+
+        $existenciaCiclo->bindValue(':ciclo', $ciclo);
+        $existenciaCiclo->execute();
+        if($existenciaCiclo->rowCount() > 0){
+            return  $existenciaCiclo=$existenciaCiclo->fetch(PDO::FETCH_ASSOC);
+        }
+        return false;
+    }
+
+    static public function existenciaPlanEstudio($planEstudio){
+        $pdo=Conexion::getDatabaseConnection();
+        $existenciaPlanEstudio=$pdo->prepare("select * from planes_estudios where nombre_plan_estudio=:planEstudio");
+        $existenciaPlanEstudio->bindValue(':planEstudio', $planEstudio);
+        $existenciaPlanEstudio->execute();
+        if($existenciaPlanEstudio->rowCount() > 0){
+            return $existenciaPlanEstudio=$existenciaPlanEstudio->fetch(PDO::FETCH_ASSOC);
+        }
+        return false;
+    }
+
+    static public function existenciaTurno($turno){
+        $pdo=Conexion::getDatabaseConnection();
+        $existenciaTurno=$pdo->prepare("select * from turnos  where turno = :turno");
+        $existenciaTurno->bindValue(':turno', $turno);
+        $existenciaTurno->execute();
+        if($existenciaTurno->rowCount() > 0){
+            return $existenciaTurno=$existenciaTurno->fetch(PDO::FETCH_ASSOC);
+        }
+        return false;
+    }
 
 
 }

@@ -11,23 +11,24 @@ $params=FuncionesExtras::getJson();
 $calPrimaria=$params->calPrimaria != "" ? $params->calPrimaria: "" ;
 $calSecundaria=$params->calSecundaria != "" ? $params->calSecundaria: "" ;
 // variables con la información del centro de trabajo
-$claveCct=$params->claveCct != "" ? FuncionesExtras::limpiarCadena(strtoupper( $params->claveCct)): "" ;
-$cctNombre=$params->nombreCct != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->nombreCct)): "" ;
-$cicloId=$params->cicloEscolar != "" ? FuncionesExtras::limpiarCadena($params->cicloEscolar): "" ;
-$zonaEscolar=$params->zonaEscolar != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->zonaEscolar)): "" ;
-$planEstudioId=$params->planEstudio != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->planEstudio)): "" ;
-$nivel=$params->nivelEducativo != "" ? FuncionesExtras::limpiarCadena($params->nivelEducativo): "";
-$localidad=$params->localidad != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->localidad)) : "" ;
+$claveCct=$params->claveCct != "" ? Validaciones::limpiarCadena(strtoupper( $params->claveCct)): "" ;
+$cctNombre=$params->nombreCct != "" ? Validaciones::limpiarCadena(strtoupper($params->nombreCct)): "" ;
+$cicloId=$params->cicloEscolar != "" ? Validaciones::limpiarCadena(Validaciones::desencriptar($params->cicloEscolar)): "" ;
+$zonaEscolar=$params->zonaEscolar != "" ? Validaciones::limpiarCadena(strtoupper($params->zonaEscolar)): "" ;
+$planEstudioId=$params->planEstudio != "" ? Validaciones::limpiarCadena(strtoupper(Validaciones::desencriptar($params->planEstudio))): "" ;
+$nivel=$params->nivelEducativo != "" ? Validaciones::limpiarCadena(Validaciones::desencriptar($params->nivelEducativo)): "";
+$localidad=$params->localidad != "" ? Validaciones::limpiarCadena(strtoupper($params->localidad)) : "" ;
 // informacion de la boleta
-$turno= $params->turno != "" ? FuncionesExtras::limpiarCadena($params->turno):"";
-$grupo= $params->grupo != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->grupo)):"";
-$folio= $params->folioBoleta != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->folioBoleta)) :"";
-$directorCorrespondiente= $params->directorCorrespondiente != "" ? FuncionesExtras::limpiarCadena($params->directorCorrespondiente):"";
+$turno= $params->turno != "" ? Validaciones::limpiarCadena(Validaciones::desencriptar($params->turno)):"";
+$grupo= $params->grupo != "" ? Validaciones::limpiarCadena(strtoupper($params->grupo)):"";
+$folio= $params->folioBoleta != "" ? Validaciones::limpiarCadena(strtoupper($params->folioBoleta)) :"";
+$directorCorrespondiente= $params->directorCorrespondiente != "" ? Validaciones::limpiarCadena($params->directorCorrespondiente):"";
+$promedio= isset($params->promedio) ? $params->promedio : null;
 // informacion de la persona 
-$nombres= $params->nombre != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->nombre)): "" ;
-$apellidoPaterno= $params->apellidoPaterno != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->apellidoPaterno)): "" ;
-$apellidoMaterno= $params->apellidoMaterno != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->apellidoMaterno)): "" ;
-$curp= $params->curp != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->curp)) :"";
+$nombres= $params->nombre != "" ? Validaciones::limpiarCadena(strtoupper($params->nombre)): "" ;
+$apellidoPaterno= $params->apellidoPaterno != "" ? Validaciones::limpiarCadena(strtoupper($params->apellidoPaterno)): "" ;
+$apellidoMaterno= $params->apellidoMaterno != "" ? Validaciones::limpiarCadena(strtoupper($params->apellidoMaterno)): "" ;
+$curp= isset($params->curp) != "" ? Validaciones::limpiarCadena(strtoupper($params->curp)) :"";
 
 $dataPersona=["nombre"=>$nombres,"apellidoP"=>$apellidoPaterno,"apellidoM"=>$apellidoMaterno,"curp"=>$curp ];
 $dataCt=["cct"=>$claveCct,"nombreCct"=>$cctNombre,"zona"=>$zonaEscolar,"nivel"=>$nivel, "localidad"=>$localidad];
@@ -38,6 +39,16 @@ $token=$params->token;
 $isValidToken = Validaciones::validarToken($token);
 // esta es la variable del usuario por el  cual fue capturada la informacion
 $capturadoPor=$isValidToken['datos']['id_usuario'];
+
+
+
+// validamos la longitud de los campos que enviamos
+
+$longitudesAValidar= [["aValidar"=>$claveCct ,"longitud"=>10] ,["aValidar"=>$cctNombre ,"longitud"=>100] ,["aValidar"=>$localidad ,"longitud"=> 100],["aValidar"=> $folio ,"longitud"=> 50], ["aValidar"=>$nombres ,"longitud"=>40] ,[ "aValidar"=>$apellidoPaterno ,"longitud"=>40] , ["aValidar"=>$apellidoMaterno ,"longitud"=>40] , ["aValidar"=>isset($curp) ? $curp : "", "longitud"=>18]];
+
+$validarLongitudes=Validaciones::validarLongitud("",$longitudesAValidar, '2');
+if (!$validarLongitudes){FuncionesExtras::enviarRespuesta(true,true,"Algunos de los Datos que envio son demasiado largos, Verifiquelos por favor", ""); die;}
+
 
 if ($token != "" && $isValidToken['valido']) {
     try 
@@ -78,11 +89,12 @@ if ($token != "" && $isValidToken['valido']) {
         $idPersona=$insertarPersona;
     }
     
-    $dataBoleta=["idPersona"=>$idPersona,"idNivel"=>$nivel,"idPlan"=>$planEstudioId,"idCct"=>$idCct,"idCiclo"=>$cicloId, "folio"=>$folio, "grupo"=>$grupo, "idTurno"=>$turno , "directorCorrespondiente"=>$directorCorrespondiente, "capturador" => $capturadoPor];
+    $dataBoleta=["idPersona"=>$idPersona,"idNivel"=>$nivel,"idPlan"=>$planEstudioId,"idCct"=>$idCct,"idCiclo"=>$cicloId, "folio"=>$folio, "grupo"=>$grupo, "idTurno"=>$turno , "directorCorrespondiente"=>$directorCorrespondiente, "capturador" => $capturadoPor, "promedio" => $promedio];
     
     // verificamos que la persona no tenga otra boleta cargada que pertenesca al mismo nivel
     $numeroBoletas=ValidarExistencia::existenciaBoletaPersona($idPersona,$nivel);
-    if ($numeroBoletas == 0) {
+    $existeBoletaByFolio=ValidarExistencia::existenciaBoleta($folio);
+    if ($numeroBoletas == 0 && !$existeBoletaByFolio ) {
         $insertBoleta=Modelo::insertarBoleta($dataBoleta);
         $idBoleta=$insertBoleta;
         // FuncionesExtras::enviarRespuesta(false,true,"Boleta agregada Correctamente", $insertBoleta);
@@ -93,8 +105,7 @@ if ($token != "" && $isValidToken['valido']) {
     }
     // insertamos las calificaciones en caso de que el nivel sea de primaria
     if ($nivel == 1) {
-        $insertarCalificaciones=Modelo::insertarCalificacionesPrimaria($calPrimaria,$idBoleta);
-
+        $insertarCalificaciones=Modelo::insertarCalificacionesPrimaria($calPrimaria,$idBoleta, 1);
             FuncionesExtras::enviarRespuesta(false,true,"Boleta agregada Correctamente", "");
         
     }

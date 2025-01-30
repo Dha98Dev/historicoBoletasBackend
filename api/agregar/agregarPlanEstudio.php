@@ -5,9 +5,9 @@ require_once __DIR__."/../../modelo/modelo.php";
 include __DIR__."/../../funcionesExtras/cors.php";
 
 $params=FuncionesExtras::getJson();
-$nombrePlan=$params->nombrePlan != "" ? $params->nombrePlan: "" ;
-$inicio=$params->periodoInicio != "" ? $params->periodoInicio: "" ;
-$fin= $params->periodoInicio != "" ? $params->periodoFin: "" ;
+$nombrePlan=$params->nombrePlan != "" ? Validaciones::limpiarCadena($params->nombrePlan): " " ;
+$inicio=$params->periodoInicio != "" ? $params->periodoInicio: null ;
+$fin= $params->periodoInicio != "" ? $params->periodoFin: null ;
 $respuesta="";
 $token=$params->token;
 $isValidToken = Validaciones::validarToken($token);
@@ -34,3 +34,4 @@ FuncionesExtras::enviarRespuesta(true,true,$e->getMessage(), "");
 } else {
     FuncionesExtras::enviarRespuesta(true,false,"Necesita iniciar sesion de nuevo", "");
 }
+ 

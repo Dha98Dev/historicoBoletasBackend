@@ -7,7 +7,7 @@ require_once __DIR__."/../../getData/validarExistencia.php";
 require_once __DIR__."/../../updates/actualizaciones.php";
 
 $params=FuncionesExtras::getJson();
-$idBoleta=$params-> idBoleta ?? "";
+$idBoleta=Validaciones::limpiarCadena(Validaciones::desencriptar($params->idBoleta)) ?? "";
 
 $token=$params->token;
 $isValidToken = Validaciones::validarToken($token);

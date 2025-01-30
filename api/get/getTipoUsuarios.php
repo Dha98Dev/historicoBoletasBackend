@@ -14,8 +14,9 @@ if ($token != "" && $isValidToken['valido']) {
     {
         // verificamos que todos los parametros vengan llenos en este caso es el de la materia
 
-           $ciclosEscolares=getData::getTiposUsuarios();
-           FuncionesExtras::enviarRespuesta(false,true,"Listado de tipos de usuarios", $ciclosEscolares);
+           $tiposUsuarios=getData::getTiposUsuarios();
+           $tiposUsuarios= FuncionesExtras::encriptarIdentificadores(['id_tipo_usuario'], $tiposUsuarios) ;
+           FuncionesExtras::enviarRespuesta(false,true,"Listado de tipos de usuarios", $tiposUsuarios);
 
     } 
 catch (Exception $e) {

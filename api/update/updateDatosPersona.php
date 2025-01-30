@@ -8,11 +8,11 @@ require_once __DIR__."/../../updates/actualizaciones.php";
 
 $params=FuncionesExtras::getJson();
 $token=$params->token;
-$localidad= strtoupper($params->localidad) ?? "";
-$municipio= strtoupper($params->municipio) ?? "";
-$domicilio= strtoupper($params->domicilio) ?? "";
-$idBoleta= $params->idBoleta ?? "";
-$telefono = $params->telefono ?? "";
+$localidad= Validaciones::limpiarCadena(strtoupper($params->localidad)) ?? "";
+$municipio= Validaciones::limpiarCadena(strtoupper($params->municipio)) ?? "";
+$domicilio= Validaciones::limpiarCadena(strtoupper($params->domicilio)) ?? "";
+$idBoleta= Validaciones::limpiarCadena(Validaciones::desencriptar($params->idBoleta)) ?? "";
+$telefono = Validaciones::limpiarCadena($params->telefono) ?? "";
 
 
 

@@ -6,9 +6,9 @@ class Modelo
 {
     static public function insertarMateria($materia){
         $pdo=Conexion::getDatabaseConnection();
-        $insertarMateria= $pdo->query("insert into materias(nombre_materia) values('$materia')");
+        $insertarMateria= $pdo->query("insert into materias(nombre_materia) values('$materia') RETURNING  id_materia");
         if ($insertarMateria) {
-            return true;
+        return $insertarMateria->fetch(PDO::FETCH_ASSOC)['id_materia'];
         }
         $pdo=null;
         return false;
@@ -30,7 +30,17 @@ class Modelo
 
     static public function insertarPlanEstudio($planEstudio, $inicio, $fin){
         $pdo=Conexion::getDatabaseConnection();
-        $insertarPlanEstudio=$pdo->query("insert into planes_estudios (nombre_plan_estudio, periodo_inicio, periodo_fin) values('$planEstudio', '$inicio', '$fin') returning id_plan_estudio");
+        $camposAInsertar='';
+         $valores="('$planEstudio', '$inicio', '$fin')";
+        if ($inicio != null && $fin != null) {
+            $camposAInsertar="(nombre_plan_estudio, periodo_inicio, periodo_fin)";
+            $valores="('$planEstudio', '$inicio', '$fin')";
+        }else{
+            $camposAInsertar="(nombre_plan_estudio)";
+            $valores="('$planEstudio')";
+        }
+
+        $insertarPlanEstudio=$pdo->query("insert into planes_estudios $camposAInsertar values $valores returning id_plan_estudio");
 
         if ($insertarPlanEstudio) {
             $id_plan_estudio = $insertarPlanEstudio->fetch(PDO::FETCH_ASSOC)['id_plan_estudio'];
@@ -75,7 +85,7 @@ class Modelo
             $valorAgregacion=" , '".$dataBoleta['directorCorrespondiente']."' ";
         }
         $pdo=Conexion::getDatabaseConnection();
-        $insertBoleta = $pdo->query("insert into boletas (persona_id, nivel_id, plan_estudio_id, centro_trabajo_id, ciclo_escolar_id, folio, grupo, fecha_registro, turno_id ".$insertAgregacion.", capturado_por) values ('".$dataBoleta['idPersona']."', '".$dataBoleta['idNivel']."', '".$dataBoleta['idPlan']."', '".$dataBoleta['idCct']."', '".$dataBoleta['idCiclo']."', '".$dataBoleta['folio']."', '".$dataBoleta['grupo']."', NOW(), '".$dataBoleta['idTurno']."' ".$valorAgregacion." , '".$dataBoleta['capturador']."') returning id_boleta");
+        $insertBoleta = $pdo->query("insert into boletas (persona_id, nivel_id, plan_estudio_id, centro_trabajo_id, ciclo_escolar_id, folio, grupo, fecha_registro, turno_id ".$insertAgregacion.", capturado_por, estado_id, promedio) values ('".$dataBoleta['idPersona']."', '".$dataBoleta['idNivel']."', '".$dataBoleta['idPlan']."', '".$dataBoleta['idCct']."', '".$dataBoleta['idCiclo']."', '".$dataBoleta['folio']."', '".$dataBoleta['grupo']."', NOW(), '".$dataBoleta['idTurno']."' ".$valorAgregacion." , '".$dataBoleta['capturador']."', '3', ".$dataBoleta['promedio'].") returning id_boleta");
 
  if ($insertBoleta) {
     $id_boleta = $insertBoleta->fetch(PDO::FETCH_ASSOC)['id_boleta'];
@@ -86,31 +96,38 @@ return null;
 
 
 
-    static public function insertarDirectorCct($cct, $persona){
+    static public function insertarDirectorCct($cct, $persona, $cicloEscolarId){
         $pdo=Conexion::getDatabaseConnection();
-        $insertarDirectorCct=$pdo->query("insert into directores_centro_trabajo (centro_trabajo_id, persona_id)
-        values ('$cct','$persona') returning id_director_centro_trabajo");
+        $insertarDirectorCct=$pdo->query("insert into directores_centro_trabajo (centro_trabajo_id, persona_id, ciclo_escolar_id)
+        values ('$cct','$persona', '$cicloEscolarId') returning id_director_centro_trabajo");
         if ($insertarDirectorCct) {
         return true;
         }
         return false;
     }
-    static public function insertarCalificacionesPrimaria($calificaciones, $idBoleta){
+    static public function insertarCalificacionesPrimaria($calificaciones, $idBoleta, $tipo){
         $pdo=Conexion::getDatabaseConnection();
         $completo=false;
-        foreach ($calificaciones as $calificacion) {
-            // Acceder a las propiedades del objeto
-            $materiaId = $calificacion->id_materia;
-            $calificacionValor = $calificacion->calificacion;
-    
-            // Realizar la inserción
-            $insertarCalificacion = $pdo->query("INSERT INTO calificaciones_primaria (materia_id, boleta_id, calificacion)
-            VALUES ('".$materiaId."', '".$idBoleta."', '".$calificacionValor."') RETURNING id_calificacion_primaria");
-        }
-if ($completo) {
-    return true;
-}
-        return false;
+   if($tipo==1){
+    foreach ($calificaciones as $calificacion) {
+        // Acceder a las propiedades del objeto
+        $materiaId = Validaciones::desencriptar($calificacion->id_materia);
+        $calificacionValor = $calificacion->calificacion;
+
+        // Realizar la inserción
+        $insertarCalificacion = $pdo->query("INSERT INTO calificaciones_primaria (catalogo_materia_plan_id, boleta_id, calificacion)
+        VALUES ('".$materiaId."', '".$idBoleta."', '".$calificacionValor."') RETURNING id_calificacion_primaria");
+        $completo = $insertarCalificacion->rowCount() > 0; // Verificamos si se insertó alguna fila
+    }
+   }
+   else if($tipo == 2){
+    for ($i=0; $i <count($calificaciones) ; $i++) { 
+        $insertarCalificacion=$pdo->query("INSERT INTO calificaciones_primaria (catalogo_materia_plan_id, boleta_id, calificacion)
+        VALUES ('".$calificaciones[$i]['id_materia']."', '".$idBoleta."', '".$calificaciones[$i]['calificacion']."') RETURNING id_calificacion_primaria");
+    }
+   }
+
+        return $completo ? true : false;
     }
     static public function insertarCalificacionesSecundaria($calificaciones, $idBoleta){
         $pdo=Conexion::getDatabaseConnection();
@@ -162,6 +179,4 @@ if ($completo) {
     
     
 }
-
-
 

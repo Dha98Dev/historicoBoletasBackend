@@ -13,7 +13,8 @@ if ($token != "" && $isValidToken['valido']) {
     {
 
         $usuarios=getData::getUsuarios();
-        FuncionesExtras::enviarRespuesta(false,false,"listado de usuarios", $usuarios);
+     $usuarios=FuncionesExtras::encriptarIdentificadores(['id_usuario'],$usuarios);
+     FuncionesExtras::enviarRespuesta(false,false,"listado de usuarios", $usuarios);
 
     } 
 catch (Exception $e) {

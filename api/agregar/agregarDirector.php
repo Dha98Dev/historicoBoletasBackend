@@ -12,19 +12,26 @@ $isValidToken = Validaciones::validarToken($token);
 if ($token != "" && $isValidToken['valido']) {
     try 
     {
-        $cct=$params->cct != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->cct)) : "";
-        $nombreCct=$params->nombreCct != "" ? FuncionesExtras::limpiarCadena(addslashes(strtoupper($params->nombreCct))) : "";
-        $nivel=$params->nivel != "" ? FuncionesExtras::limpiarCadena($params->nivel) : "";
-        $zonaEscolar=$params->zonaEscolar != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->zonaEscolar)) : "";
-        $nombre=$params->nombre != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->nombre)) : "";
-        $apellidoPaterno=$params->apellidoPaterno != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->apellidoPaterno)) : "";
-        $apellidoMaterno=$params->apellidoMaterno != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->apellidoMaterno)) : "";
-        $curp=$params->curp != "" ? FuncionesExtras::limpiarCadena(strtoupper($params->curp)) : "";
+        $cct=$params->cct != "" ? Validaciones::limpiarCadena(strtoupper($params->cct)) : "";
+        $nombreCct=$params->nombreCct != "" ? Validaciones::limpiarCadena(addslashes(strtoupper($params->nombreCct))) : "";
+        $localidad=$params->localidad != "" ? Validaciones::limpiarCadena(strtoupper($params->localidad)) : "";
+        $nivel=$params->nivel != "" ? Validaciones::limpiarCadena(Validaciones::desencriptar($params->nivel)) : "";
+        $zonaEscolar=$params->zonaEscolar != "" ? Validaciones::limpiarCadena(strtoupper($params->zonaEscolar)) : "";
+        $nombre=$params->nombre != "" ? Validaciones::limpiarCadena(strtoupper($params->nombre)) : "";
+        $apellidoPaterno=$params->apellidoPaterno != "" ? Validaciones::limpiarCadena(strtoupper($params->apellidoPaterno)) : "";
+        $apellidoMaterno=$params->apellidoMaterno != "" ? Validaciones::limpiarCadena(strtoupper($params->apellidoMaterno)) : "";
+        $cicloEscolar=$params->cicloEscolar != "" ?  Validaciones::limpiarCadena(Validaciones::desencriptar($params->nivel)) : "";
         
+
+        $longitudesAValidar= [["aValidar"=>$cct ,"longitud"=>10] ,["aValidar"=>$nombreCct ,"longitud"=>100] ,[ "aValidar"=>$apellidoPaterno ,"longitud"=>40] , ["aValidar"=>$apellidoMaterno ,"longitud"=>40] , ["aValidar"=>isset($curp) ? $curp : "", "longitud"=>18]];
+
+        $validarLongitudes=Validaciones::validarLongitud("",$longitudesAValidar, '2');
+        if (!$validarLongitudes){FuncionesExtras::enviarRespuesta(true,true,"Algunos de los Datos que envio son demasiado largos, Verifiquelos por favor", ""); die;}
+
+
+        $curp=$params->curp != "" ? Validaciones::limpiarCadena(strtoupper($params->curp)) : "";
         $dataPersona=["nombre"=>$nombre, "apellidoP"=>$apellidoPaterno, "apellidoM"=> $apellidoMaterno, "curp" =>$curp];
-        
-        $dataCentroTrabajo=["cct" => $cct, "nombreCct" => $nombreCct, "nivel" =>$nivel, "zona"=>$zonaEscolar];
-        
+        $dataCentroTrabajo=["cct" => $cct, "nombreCct" => $nombreCct, "nivel" =>$nivel, "zona"=>$zonaEscolar, "localidad"=>$localidad];    
         $nombreCompleto=$nombre. " ".$apellidoPaterno." ". $apellidoMaterno;
         // validamos si ya se encuentra registrada la persona y si no la insertamos 
         $validarExistePersona=ValidarExistencia::existenciaPersona("",$nombreCompleto);
@@ -57,7 +64,7 @@ if ($token != "" && $isValidToken['valido']) {
 
         }
         else{
-            $insertarDirector=Modelo::insertarDirectorCct($id_ct,$id_persona);
+            $insertarDirector=Modelo::insertarDirectorCct($id_ct,$id_persona, $cicloEscolar);
             $isComplete=true;
         }
         $directores=[];

@@ -5,15 +5,15 @@ require_once __DIR__."/../../modelo/modelo.php";
 include __DIR__."/../../funcionesExtras/cors.php";
 
 $params=FuncionesExtras::getJson();
-$cct = $params->cct ?? "";
-$ciclo = $params->idCiclo ?? "";
-$curp = $params->curp ?? "";
-$folio = $params->folio ?? "";
-$nombre = $params->nombre ?? "";
-$numeroFiltro=$params->numeroFiltro ?? "";
-$localidad=$params->localidad ?? "";
-$estadoFiltro= $params->estado ?? "" ;
-$boleta=$params->boleta ?? "";
+$cct = Validaciones::limpiarCadena($params->cct) ?? "";
+$ciclo = Validaciones::limpiarCadena(Validaciones::desencriptar($params->idCiclo)) ?? "";
+$curp = Validaciones::limpiarCadena($params->curp) ?? "";
+$folio = Validaciones::limpiarCadena($params->folio) ?? "";
+$nombre = Validaciones::limpiarCadena($params->nombre) ?? "";
+$numeroFiltro=Validaciones::limpiarCadena($params->numeroFiltro) ?? "";
+$localidad=Validaciones::limpiarCadena($params->localidad) ?? "";
+$estadoFiltro= Validaciones::limpiarCadena($params->estado )?? "" ;
+$boleta=Validaciones::limpiarCadena(Validaciones::desencriptar($params->boleta)) ?? "";
 
 $clausulaWhere="";
 
@@ -52,6 +52,9 @@ if ($token != "" && $isValidToken['valido']) {
     {
       $data=getData::getCalificaciones($clausulaWhere);
       if ($data) {
+
+        $data=FuncionesExtras::encriptarIdentificadores(['id_boleta', 'id_ciclo','id_centro_trabajo', 'id_calificacion_primaria','id_calificacion_secundaria'], $data);
+
         $calificacionesPrimaria = [];
         $calificacionesSecundaria = [];
         
@@ -95,7 +98,7 @@ if ($token != "" && $isValidToken['valido']) {
                     'plan_estudio' => $item['nombre_plan_estudio'],
                     'ciclo' => $item['ciclo'],
                     'clave_centro_trabajo' => $item['clave_centro_trabajo'],
-                    'nombre_cct' => $item['nombre_cct'],
+                    'nombre_cct' => html_entity_decode($item['nombre_cct']),
                     'folio' => $item['folio'],
                     'grupo' => $item['grupo'],
                     'turno' => $item['turno'],
@@ -109,7 +112,8 @@ if ($token != "" && $isValidToken['valido']) {
                     'telefono'=>$item['telefono'],
                     'zona' => $item['zona_escolar'],
                     'estado_boleta' => $item['estado_boleta'],
-                    'boletaSolicitudServicio' =>FuncionesExtras::codificarUrl(Validaciones::encriptar($item['id_boleta'])),
+                    'director_ct'=> $item['director_ct'],
+                    'boletaSolicitudServicio' =>FuncionesExtras::codificarUrl($item['id_boleta']),
                     'calificacionesPrimaria' => [],
                     'calificacionesSecundaria' => []
                 ];
@@ -140,7 +144,7 @@ if ($token != "" && $isValidToken['valido']) {
       }
       
       else{
-      FuncionesExtras::enviarRespuesta(true,true,"no hay registros aun ",$clausulaWhere);
+      FuncionesExtras::enviarRespuesta(true,true,"no hay registros aun ",'');
 
       }
     } 

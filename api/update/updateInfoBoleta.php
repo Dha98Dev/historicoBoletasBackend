@@ -7,46 +7,55 @@ require_once __DIR__."/../../getData/validarExistencia.php";
 require_once __DIR__."/../../updates/actualizaciones.php";
 
 $params=FuncionesExtras::getJson();
-$idBoleta=$params-> idBoleta ?? "";
+$idBoleta= Validaciones::limpiarCadena(Validaciones::desencriptar($params-> idBoleta))  ?? "";
 $token=$params->token;
-$nombre=$params->nombre ?? "";
-$apellidoPaterno=$params->apellidoPaterno ?? "";
-$apellidoMaterno=$params->apellidoMaterno ?? "";
-$curp= $params->curp ?? "";
+$nombre= Validaciones::limpiarCadena(strtoupper($params->nombre)) ?? "";
+$apellidoPaterno=Validaciones::limpiarCadena(strtoupper($params->apellidoPaterno)) ?? "";
+$apellidoMaterno=Validaciones::limpiarCadena(strtoupper($params->apellidoMaterno)) ?? "";
+$curp= Validaciones::limpiarCadena(strtoupper($params->curp)) ?? "";
 
-$claveCt= $params->claveCt ?? "";
-$nombreCt = $params->nombreCt ?? "";
-$grupo= $params->grupo ?? "";
-$turno = $params->turno ?? "";
-$ciclo=$params -> ciclo ?? "";
-$nivel = $params->nivel ?? "";
-$zona = $params ->zona ?? "";
-$idCt=$params ->idCt ?? "";
-$localidad = $params->localidad ?? "";
-$folio = $params->folio ?? "";
+$claveCt= Validaciones::limpiarCadena(strtoupper($params->claveCt)) ?? "";
+$nombreCt = Validaciones::limpiarCadena(strtoupper($params->nombreCt)) ?? "";
+$grupo= Validaciones::limpiarCadena(strtoupper($params->grupo)) ?? "";
+$turno = Validaciones::limpiarCadena($params->turno) ?? "";
+$ciclo=Validaciones::limpiarCadena($params -> ciclo) ?? "";
+$nivel = Validaciones::limpiarCadena($params->nivel) ?? "";
+$zona = Validaciones::limpiarCadena($params ->zona) ?? "";
+$idCt=Validaciones::limpiarCadena(Validaciones::desencriptar($params ->idCt)) ?? "";
+$localidad = Validaciones::limpiarCadena(strtoupper($params->localidad))?? "";
+$folio = Validaciones::limpiarCadena($params->folio) ?? "";
 $secundaria = $params->calificacionesSecundaria ?? "";
 $calificacionesPrimaria = $params->calificacionesPrimaria ?? [];
+
 
 $dataPersona=["nombre"=> $nombre, "apellidoPaterno"=> $apellidoPaterno, "apellidoMaterno"=> $apellidoMaterno, "curp"=> $curp];
 // $dataSecundaria=["calificaciones"=> $calificacionesSecundaria,"idBoleta" => $idBoleta];
 // $dataPrimaria=["calificaciones"=> $calificacionesPrimaria,"idBoleta" => $idBoleta];
 $dataCt=["idCt"=>$idCt,"cct"=> $claveCt, "nombreCt"=> $nombreCt, "zona"=> $zona, "nivel"=> $nivel, "localidad"=> $localidad];
 $dataBoleta=["folio"=> $folio, "grupo"=> $grupo, "turno"=> $turno, "ciclo"=>$ciclo, "idBoleta"=> $idBoleta];
+$updateCalPrimaria=false;
 $isValidToken = Validaciones::validarToken($token);
 if ($token != "" && $isValidToken['valido']) {
-    try 
-    {
-   
-        // $updateCalSecundaria=Actualizaciones::UpdateCalificacionesSecundaria($calificacionesSecundaria, $idBoleta);
-        FuncionesExtras::enviarRespuesta(false,true,"algox", $secundaria );
-//     $updateDatosPersonales=Actualizaciones::updatePersona($dataPersona, $idBoleta);
-//     $updateCalPrimaria= Actualizaciones::UpdateCalificacionesPrimaria($calificacionesPrimaria);
-//     $updateCct=Actualizaciones::UpdateCt($dataCt);
-//     $updateDatosBoleta=Actualizaciones::updateDatosBoleta($dataBoleta);
+        try 
+        {
+                $updateDatosBoleta=Actualizaciones::updateDatosBoleta($dataBoleta);
+                // FuncionesExtras::enviarRespuesta(true,true, 'folio' , $updateDatosBoleta);
+
+
+            // FuncionesExtras::enviarRespuesta(false,true,"algox", $secundaria );
+   if ($nivel=='PRIMARIA') {
+           $updateCalPrimaria= Actualizaciones::UpdateCalificacionesPrimaria($calificacionesPrimaria);
+
+   }
+   else{
+           $updateCalSecundaria=Actualizaciones::UpdateCalificacionesSecundaria($calificacionesSecundaria, $idBoleta);
+   }
+    $updateDatosPersonales=Actualizaciones::updatePersona($dataPersona, $idBoleta);
+    $updateCct=Actualizaciones::UpdateCt($dataCt);
     
-//    if ($updateDatosPersonales && $updateCalPrimaria && $updateCalSecundaria && $updateCct && $updateDatosBoleta) {
-//     FuncionesExtras::enviarRespuesta(false, true,'Datos Actualizados correctamente', $updateCalPrimaria);
-//    }
+   if (($updateDatosPersonales  && $updateCct && $updateDatosBoleta) && ($updateCalPrimaria || $updateCalSecundaria)) {
+    FuncionesExtras::enviarRespuesta(false, true,'Datos Actualizados correctamente', '');
+   }
 
 
 

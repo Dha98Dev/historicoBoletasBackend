@@ -6,8 +6,8 @@ include __DIR__."/../../funcionesExtras/cors.php";
 require_once __DIR__."/../../getData/validarExistencia.php";
 
 $params=FuncionesExtras::getJson();
-$materias=$params->materias != "" ? $params->materias : "" ;
-$idPlanEstudio = $params->idPlanEstudio != ""  ? $params->idPlanEstudio : "" ;
+$materias=$params->materias != "" ? Validaciones::limpiarCadena($params->materias) : "" ;
+$idPlanEstudio = $params->idPlanEstudio != ""  ? Validaciones::limpiarCadena($params->idPlanEstudio) : "" ;
 // $idNivel= $params->idNivel != "" ? $params->id : "";
 
 $respuesta="";
